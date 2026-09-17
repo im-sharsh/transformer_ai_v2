@@ -87,6 +87,10 @@ def fmt_int(x) -> str:
     return "—" if x is None else f"{int(x):,}"
 
 
+def _goto(page: str):
+    st.session_state.nav = page
+
+
 def set_dataset(path: Path, source: str):
     cfg = config()
     t0 = time.time()
@@ -637,6 +641,16 @@ def render_level(preparer, level: str):
         (st.success if pit["passed"] else st.error)(
             f"Point-in-time check: {'passed' if pit['passed'] else 'FAILED'} on {pit['rows_checked']} sampled rows "
             "(history features recomputed from truncated data must match the real ones)")
+    findings = info.get("leakage")
+    if findings:
+        st.markdown("**Leakage findings** (nothing is removed except structural leaks flagged below; the rest need human review)")
+        risk_order = {"high": 0, "medium": 1, "low": 2, "info": 3}
+        rows = sorted(({"Feature": f["feature"], "Risk": f["leakage_risk"], "Check": f["check"],
+                       "Reason": f["reason"], "Recommendation": f["recommendation"]} for f in findings),
+                     key=lambda r: risk_order.get(r["Risk"], 9))
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+    elif findings is not None:
+        st.success("No leakage findings.")
     st.markdown("**Preview (train split)**")
     preview_cols = [c for c in prepared.frames["train"].columns if not c.startswith("_")]
     st.dataframe(prepared.frames["train"][preview_cols].head(20), width="stretch")
