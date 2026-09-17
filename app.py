@@ -133,15 +133,24 @@ def sidebar():
 
 
 # ------------------------------------------------------------------ pages
+def go_to_data_upload():
+    st.session_state.nav = "Data Upload"
+    
 def page_dashboard():
     st.title("Dashboard")
     df, roles, meta = st.session_state.df, st.session_state.roles, st.session_state.meta
     if df is None:
-        st.markdown('<p class="tdi-lead">Load a CSV or JSON file to see its structure, roles and profile. '
-                    "Nothing is modified: files are read as they are.</p>", unsafe_allow_html=True)
-        if st.button("Go to data upload", type="primary"):
-            st.session_state.nav = "Data Upload"
-            st.rerun()
+        st.markdown(
+            '<p class="tdi-lead">Load a CSV or JSON file to see its structure, roles and profile. '
+            "Nothing is modified: files are read as they are.</p>",
+            unsafe_allow_html=True
+        )
+
+        st.button(
+            "Go to data upload",
+            type="primary",
+            on_click=go_to_data_upload
+        )
     else:
         st.markdown(f'<p class="tdi-lead">{meta.file_name} · loaded from {st.session_state.source}</p>', unsafe_allow_html=True)
         c = st.columns(4)
