@@ -1,0 +1,10 @@
+[server]
+maxUploadSize = 1024          # MB; very large files can also be loaded from a local path
+
+[theme]
+base = "light"
+primaryColor = "#2B5F8A"
+backgroundColor = "#FAFBFC"
+secondaryBackgroundColor = "#EDF1F5"
+textColor = "#1B2A41"
+font = "sans serif"

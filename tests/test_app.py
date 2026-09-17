@@ -1,0 +1,40 @@
+"""Headless UI test: every section renders, demo data loads, schema is detected, profiling runs."""
+from pathlib import Path
+
+import pytest
+
+streamlit_testing = pytest.importorskip("streamlit.testing.v1")
+APP = str(Path(__file__).resolve().parents[1] / "app.py")
+
+
+def _no_errors(at):
+    assert not at.exception, [e.value for e in at.exception]
+    assert not at.error, [e.value for e in at.error]
+
+
+def test_every_section_renders_without_data():
+    at = streamlit_testing.AppTest.from_file(APP, default_timeout=60).run()
+    _no_errors(at)
+    for page in ["Dashboard", "Data Upload", "Profiling", "Quality Analysis", "Processing", "Model", "Experiments", "Results"]:
+        at.sidebar.radio[0].set_value(page).run()
+        _no_errors(at)
+    at.sidebar.radio[0].set_value("Experiments").run()
+    assert any("Not run" in str(df.value) for df in at.dataframe)
+
+
+def test_demo_flow_upload_schema_profile():
+    at = streamlit_testing.AppTest.from_file(APP, default_timeout=180).run()
+    at.sidebar.radio[0].set_value("Data Upload").run()
+    at.button(key="load_demo").click().run()
+    _no_errors(at)
+    roles = at.session_state["roles"]
+    assert roles.target == "is_fraud" and roles.task == "binary_classification"
+    assert roles.entity == "cc_num" and roles.datetime == "trans_date_trans_time"
+    at.sidebar.radio[0].set_value("Profiling").run()
+    at.button(key="run_profile").click().run()
+    _no_errors(at)
+    assert at.session_state["profile"] is not None
+    assert at.session_state["profile_info"]["full_duplicate_rows"] == 0
+    at.sidebar.radio[0].set_value("Dashboard").run()
+    _no_errors(at)
+    assert any(m.label == "Target" and m.value == "is_fraud" for m in at.metric)

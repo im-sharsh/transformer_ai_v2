@@ -1,0 +1,36 @@
+# Transaction Data Intelligence: configuration.
+# Column hints are optional: leave them null and the framework detects roles from the data.
+# Sections marked "later phase" are placeholders and are not used yet.
+
+project:
+  seed: 42
+  data_dir: data
+  experiments_dir: experiments
+  reports_dir: reports
+
+data:
+  target: null            # e.g. is_fraud, churn
+  task: null              # binary_classification | multiclass_classification | regression; null = detect
+  entity_column: null     # e.g. cc_num, customer_id (used later for history features)
+  datetime_column: null   # event time (used later for temporal splits and features)
+
+upload:
+  save_uploads_to: data/raw   # uploaded files are stored here unchanged
+
+schema:
+  sample_size: 20000      # rows sampled for value-based detection (all rows are used for counts)
+
+profiling:
+  sample_above_rows: 500000   # above this size the UI offers profiling a reproducible sample
+  sample_rows: 200000
+  top_k: 5
+  rare_threshold: 0.001       # categories below this share are reported as rare
+  skew_warning: 2.0
+
+subsets:                  # later phase (Processing)
+  options: [10000, 50000, 100000, 200000, 500000, full]
+  cpu_default: 20000
+
+split:                    # later phase
+  method: temporal        # temporal when a datetime column exists, otherwise random
+  fractions: [0.70, 0.15, 0.15]
